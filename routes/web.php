@@ -28,8 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('products', ProductController::class)->except(['create', 'edit']);
 
     Route::get('sales/data', [SaleController::class, 'data'])->name('sales.data');
-    Route::post('sales/{sale}/refund', [SaleController::class, 'refund'])->name('sales.refund');
-    Route::resource('sales', SaleController::class)->except(['edit']);
+    Route::resource('sales', SaleController::class);
 
     Route::get('users/data', [UserController::class, 'data'])->name('users.data');
     Route::resource('users', UserController::class)->except(['create', 'edit', 'show']);

@@ -18,7 +18,7 @@ class SaleController extends Controller
     /**
      * @OA\Get(path="/api/v1/sales", tags={"Sales"}, security={{"bearerAuth":{}}},
      *
-     *     @OA\Parameter(name="status", in="query", @OA\Schema(type="string", enum={"pending","paid","refunded","cancelled"})),
+     *     @OA\Parameter(name="status", in="query", @OA\Schema(type="string", enum={"pending","paid","cancelled"})),
      *     @OA\Parameter(name="from", in="query", @OA\Schema(type="string", format="date")),
      *     @OA\Parameter(name="to", in="query", @OA\Schema(type="string", format="date")),
      *
@@ -44,7 +44,7 @@ class SaleController extends Controller
     {
         $this->authorize('view', $sale);
 
-        return ApiResponse::ok(new SaleResource($sale->load(['customer', 'cashier', 'items'])));
+        return ApiResponse::ok(new SaleResource($sale->load(['customer', 'items'])));
     }
 
     /**

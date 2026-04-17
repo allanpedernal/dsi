@@ -14,7 +14,7 @@ type Props = {
 };
 
 /**
- * Customer-tenant picker shown to admin/manager/cashier to slice multi-tenant data.
+ * Customer-tenant picker shown to admin/manager to slice multi-tenant data.
  * Hidden for tenant-scoped users (customer role) since they can only see their own.
  */
 export function CustomerFilter({ options, value, onChange, locked, sx, label = 'Customer' }: Props) {

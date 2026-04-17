@@ -8,7 +8,6 @@ type SaleNotification = {
     reference: string;
     total: number;
     customer?: string;
-    cashier?: string;
     message: string;
 };
 

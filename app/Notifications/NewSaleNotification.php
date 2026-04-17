@@ -32,7 +32,6 @@ class NewSaleNotification extends Notification implements ShouldBroadcastNow
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
-        return (new BroadcastMessage($this->toArray($notifiable)))
-            ->onConnection('sync');
+        return (new BroadcastMessage($this->toArray($notifiable)));
     }
 }

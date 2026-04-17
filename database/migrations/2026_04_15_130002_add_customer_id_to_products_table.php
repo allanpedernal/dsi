@@ -10,8 +10,9 @@ return new class extends Migration
     {
         if (! Schema::hasColumn('products', 'customer_id')) {
             Schema::table('products', function (Blueprint $table) {
-                $table->foreignId('customer_id')->nullable()->after('category_id')
-                    ->constrained('customers')->nullOnDelete()->index();
+                $table->unsignedBigInteger('customer_id')->nullable()->after('category_id')->index('products_customer_id_index');
+                $table->foreign('customer_id', 'products_customer_id_foreign')
+                    ->references('id')->on('customers')->nullOnDelete();
             });
         }
     }

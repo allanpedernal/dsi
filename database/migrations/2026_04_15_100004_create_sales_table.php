@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('reference', 30)->unique();
             $table->foreignId('customer_id')->constrained('customers')->restrictOnDelete();
-            $table->foreignId('user_id')->comment('cashier')->constrained('users')->restrictOnDelete();
+            $table->foreignId('user_id')->comment('recorded by')->constrained('users')->restrictOnDelete();
             $table->enum('status', ['pending', 'paid', 'refunded', 'cancelled'])->default('pending');
             $table->decimal('subtotal', 12, 2)->default(0);
             $table->decimal('tax', 12, 2)->default(0);

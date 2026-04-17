@@ -6,7 +6,6 @@ enum SaleStatus: string
 {
     case Pending = 'pending';
     case Paid = 'paid';
-    case Refunded = 'refunded';
     case Cancelled = 'cancelled';
 
     public function label(): string
@@ -14,7 +13,6 @@ enum SaleStatus: string
         return match ($this) {
             self::Pending => 'Pending',
             self::Paid => 'Paid',
-            self::Refunded => 'Refunded',
             self::Cancelled => 'Cancelled',
         };
     }

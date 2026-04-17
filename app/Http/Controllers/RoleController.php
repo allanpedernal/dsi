@@ -20,7 +20,6 @@ class RoleController extends Controller
     private const PROTECTED_ROLES = [
         UserRole::Admin->value,
         UserRole::Manager->value,
-        UserRole::Cashier->value,
         UserRole::Customer->value,
     ];
 

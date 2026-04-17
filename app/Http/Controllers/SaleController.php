@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\SaleStatus;
 use App\Http\Requests\StoreSaleRequest;
+use App\Http\Requests\UpdateSaleRequest;
 use App\Http\Resources\SaleResource;
 use App\Models\Customer;
 use App\Models\Sale;
@@ -40,11 +41,26 @@ class SaleController extends Controller
             ->all();
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
         $this->authorize('create', Sale::class);
+        $user = $request->user();
 
-        return Inertia::render('sales/create');
+        $lockedCustomer = null;
+        if ($user->isTenantScoped()) {
+            $c = $user->customers()->first(['customers.id', 'customers.first_name', 'customers.last_name', 'customers.code']);
+            if ($c) {
+                $lockedCustomer = [
+                    'id' => $c->id,
+                    'full_name' => trim("{$c->first_name} {$c->last_name}"),
+                    'code' => $c->code,
+                ];
+            }
+        }
+
+        return Inertia::render('sales/create', [
+            'lockedCustomer' => $lockedCustomer,
+        ]);
     }
 
     public function data(Request $request): JsonResponse
@@ -60,7 +76,7 @@ class SaleController extends Controller
     public function show(Sale $sale): Response|JsonResponse
     {
         $this->authorize('view', $sale);
-        $sale->load(['customer', 'cashier', 'items']);
+        $sale->load(['customer', 'items']);
 
         if (request()->wantsJson()) {
             return ApiResponse::ok(new SaleResource($sale));
@@ -81,19 +97,43 @@ class SaleController extends Controller
         return ApiResponse::created(new SaleResource($sale), 'Sale recorded');
     }
 
+    public function edit(Request $request, Sale $sale): Response
+    {
+        $this->authorize('update', $sale);
+        $sale->load(['customer', 'items']);
+        $user = $request->user();
+
+        $lockedCustomer = null;
+        if ($user->isTenantScoped()) {
+            $c = $user->customers()->first(['customers.id', 'customers.first_name', 'customers.last_name', 'customers.code']);
+            if ($c) {
+                $lockedCustomer = [
+                    'id' => $c->id,
+                    'full_name' => trim("{$c->first_name} {$c->last_name}"),
+                    'code' => $c->code,
+                ];
+            }
+        }
+
+        return Inertia::render('sales/edit', [
+            'sale' => (new SaleResource($sale))->resolve(),
+            'lockedCustomer' => $lockedCustomer,
+        ]);
+    }
+
+    public function update(UpdateSaleRequest $request, Sale $sale): JsonResponse
+    {
+        $this->authorize('update', $sale);
+        $sale = $this->service->update($sale, $request->validated());
+
+        return ApiResponse::ok(new SaleResource($sale), 'Sale updated');
+    }
+
     public function destroy(Sale $sale): JsonResponse
     {
         $this->authorize('delete', $sale);
         $sale->delete();
 
         return ApiResponse::ok(null, 'Sale deleted');
-    }
-
-    public function refund(Sale $sale): JsonResponse
-    {
-        $this->authorize('refund', $sale);
-        $sale = $this->service->refund($sale);
-
-        return ApiResponse::ok(new SaleResource($sale->load(['customer', 'cashier', 'items'])), 'Sale refunded');
     }
 }

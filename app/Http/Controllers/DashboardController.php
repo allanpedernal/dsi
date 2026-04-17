@@ -121,7 +121,14 @@ class DashboardController extends Controller
             ->whereColumn('stock', '<=', 'reorder_level')
             ->orderBy('stock')
             ->limit(8)
-            ->get(['id', 'name', 'sku', 'stock', 'reorder_level']);
+            ->get(['id', 'name', 'sku', 'stock', 'reorder_level'])
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'sku' => $p->sku,
+                'stock' => $p->stock,
+                'reorder_level' => $p->reorder_level,
+            ]);
 
         $recentActivity = Activity::query()
             ->with('causer:id,name')

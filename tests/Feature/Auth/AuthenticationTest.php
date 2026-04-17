@@ -1,6 +1,8 @@
 <?php
 
+use App\Enums\UserRole;
 use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
 
@@ -10,8 +12,10 @@ test('login screen can be rendered', function () {
     $response->assertOk();
 });
 
-test('users can authenticate using the login screen', function () {
+test('users with dashboard access are redirected to the dashboard after login', function () {
+    $this->seed(RolePermissionSeeder::class);
     $user = User::factory()->create();
+    $user->assignRole(UserRole::Manager->value);
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,
@@ -20,6 +24,34 @@ test('users can authenticate using the login screen', function () {
 
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
+});
+
+test('users without any access are redirected to the welcome home', function () {
+    $this->seed(RolePermissionSeeder::class);
+    // No role assigned → no permissions at all.
+    $user = User::factory()->create();
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect('/home');
+});
+
+test('cashiers are redirected to sales after login', function () {
+    $this->seed(RolePermissionSeeder::class);
+    $user = User::factory()->create();
+    $user->assignRole(UserRole::Cashier->value);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect('/sales');
 });
 
 test('users with two factor enabled are redirected to two factor challenge', function () {

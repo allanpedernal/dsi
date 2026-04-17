@@ -26,6 +26,8 @@ class ProductResource extends JsonResource
             'reorder_level' => $this->reorder_level,
             'is_active' => (bool) $this->is_active,
             'is_low_stock' => $this->isLowStock(),
+            'customer_id' => $this->customer_id,
+            'customer_name' => $this->whenLoaded('customer', fn () => $this->customer?->full_name),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

@@ -29,10 +29,6 @@ class SaleResource extends JsonResource
                 'code' => $this->customer->code,
                 'name' => $this->customer->full_name,
             ]),
-            'cashier' => $this->whenLoaded('cashier', fn () => [
-                'id' => $this->cashier->id,
-                'name' => $this->cashier->name,
-            ]),
             'items' => $this->whenLoaded('items', fn () => $this->items->map(fn ($i) => [
                 'id' => $i->id,
                 'product_id' => $i->product_id,

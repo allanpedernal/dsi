@@ -25,7 +25,7 @@ class SalesExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMappin
     /** @return array<int, string> */
     public function headings(): array
     {
-        return ['Reference', 'Date', 'Customer', 'Cashier', 'Status', 'Subtotal', 'Tax', 'Discount', 'Total', 'Source'];
+        return ['Reference', 'Date', 'Customer', 'Status', 'Subtotal', 'Tax', 'Discount', 'Total', 'Source'];
     }
 
     /** @return array<int, mixed> */
@@ -35,7 +35,6 @@ class SalesExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMappin
             $sale->reference,
             $sale->created_at?->format('Y-m-d H:i'),
             $sale->customer?->full_name,
-            $sale->cashier?->name,
             $sale->status->label(),
             (float) $sale->subtotal,
             (float) $sale->tax,

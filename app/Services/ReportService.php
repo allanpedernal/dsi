@@ -18,7 +18,7 @@ class ReportService
         $customerId = TenantScope::forUser(Auth::user(), $filters['customer_id'] ?? null);
 
         return Sale::query()
-            ->with(['customer:id,first_name,last_name,code', 'cashier:id,name'])
+            ->with(['customer:id,first_name,last_name,code'])
             ->when($customerId !== null, fn (Builder $q) => $q->where('customer_id', $customerId))
             ->when($filters['from'] ?? null, fn (Builder $q, $d) => $q->whereDate('created_at', '>=', $d))
             ->when($filters['to'] ?? null, fn (Builder $q, $d) => $q->whereDate('created_at', '<=', $d))

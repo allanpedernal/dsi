@@ -22,7 +22,7 @@ class ProductService
         $customerId = TenantScope::forUser(Auth::user(), $filters['customer_id'] ?? null);
 
         return Product::query()
-            ->with('category')
+            ->with(['category', 'customer:id,first_name,last_name'])
             ->when($customerId !== null, fn (Builder $q) => $q->where('customer_id', $customerId))
             ->when($filters['search'] ?? null, function (Builder $q, string $term) {
                 $q->where(function ($q) use ($term) {

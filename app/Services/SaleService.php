@@ -27,7 +27,7 @@ class SaleService
         $customerId = TenantScope::forUser(Auth::user(), $filters['customer_id'] ?? null);
 
         return Sale::query()
-            ->with(['customer:id,first_name,last_name,code', 'cashier:id,name'])
+            ->with(['customer:id,first_name,last_name,code'])
             ->when($customerId !== null, fn (Builder $q) => $q->where('customer_id', $customerId))
             ->when($filters['search'] ?? null, fn (Builder $q, string $t) => $q->where('reference', 'like', "%{$t}%"))
             ->when($filters['status'] ?? null, fn (Builder $q, string $s) => $q->where('status', $s))
@@ -105,7 +105,7 @@ class SaleService
 
             $sale->items()->createMany($itemRows);
 
-            $sale->load(['customer', 'cashier', 'items']);
+            $sale->load(['customer', 'items']);
 
             DB::afterCommit(fn () => event(new SaleCreated($sale)));
 
@@ -113,19 +113,79 @@ class SaleService
         });
     }
 
-    public function refund(Sale $sale): Sale
+    /**
+     * Update a sale transactionally with stock adjustments.
+     *
+     * @param  array{customer_id?:int, items?:array<int,array{product_id:int,quantity:int}>, tax_rate?:float, discount?:float, notes?:?string}  $data
+     */
+    public function update(Sale $sale, array $data): Sale
     {
-        DB::transaction(function () use ($sale) {
-            if ($sale->status === SaleStatus::Refunded) {
-                return;
-            }
-            foreach ($sale->items as $item) {
-                Product::where('id', $item->product_id)->increment('stock', $item->quantity);
-            }
-            $sale->update(['status' => SaleStatus::Refunded]);
-        });
+        return DB::transaction(function () use ($sale, $data) {
+            if (isset($data['items'])) {
+                // Restore stock from existing items.
+                foreach ($sale->items as $item) {
+                    Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+                }
 
-        return $sale->refresh();
+                // Lock and validate new items.
+                $productIds = collect($data['items'])->pluck('product_id')->all();
+                $products = Product::query()
+                    ->whereIn('id', $productIds)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+
+                $subtotal = 0.0;
+                $itemRows = [];
+
+                foreach ($data['items'] as $item) {
+                    $product = $products[$item['product_id']] ?? throw new \InvalidArgumentException("Product {$item['product_id']} not found");
+                    $qty = (int) $item['quantity'];
+
+                    if ($product->stock < $qty) {
+                        throw new InsufficientStockException($product->name, $qty, $product->stock);
+                    }
+
+                    $unit = (float) $product->price;
+                    $line = $unit * $qty;
+                    $subtotal += $line;
+
+                    $itemRows[] = [
+                        'product_id' => $product->id,
+                        'product_name' => $product->name,
+                        'product_sku' => $product->sku,
+                        'unit_price' => $unit,
+                        'quantity' => $qty,
+                        'line_total' => $line,
+                    ];
+
+                    $product->decrement('stock', $qty);
+                }
+
+                $sale->items()->delete();
+                $sale->items()->createMany($itemRows);
+
+                $sale->subtotal = $subtotal;
+            }
+
+            $taxRate = \array_key_exists('tax_rate', $data)
+                ? (float) $data['tax_rate']
+                : ((float) $sale->subtotal > 0 ? (float) $sale->tax / (float) $sale->subtotal : 0);
+
+            $sale->tax = round((float) $sale->subtotal * $taxRate, 2);
+            $sale->discount = \array_key_exists('discount', $data) ? (float) $data['discount'] : (float) $sale->discount;
+            $sale->total = round((float) $sale->subtotal + (float) $sale->tax - (float) $sale->discount, 2);
+            $sale->notes = \array_key_exists('notes', $data) ? $data['notes'] : $sale->notes;
+
+            if (isset($data['customer_id'])) {
+                $sale->customer_id = $data['customer_id'];
+            }
+
+            $sale->save();
+            $sale->load(['customer', 'items']);
+
+            return $sale;
+        });
     }
 
     private function nextReference(): string

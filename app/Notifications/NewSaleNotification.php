@@ -3,14 +3,12 @@
 namespace App\Notifications;
 
 use App\Models\Sale;
-use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
-class NewSaleNotification extends Notification
+class NewSaleNotification extends Notification implements ShouldBroadcastNow
 {
-    use Queueable;
-
     public function __construct(public Sale $sale) {}
 
     /** @return array<int, string> */
@@ -27,7 +25,6 @@ class NewSaleNotification extends Notification
             'reference' => $this->sale->reference,
             'total' => (float) $this->sale->total,
             'customer' => $this->sale->customer?->full_name,
-            'cashier' => $this->sale->cashier?->name,
             'message' => "New sale {$this->sale->reference} (\$".number_format((float) $this->sale->total, 2).')',
             'created_at' => $this->sale->created_at?->toIso8601String(),
         ];
@@ -35,6 +32,7 @@ class NewSaleNotification extends Notification
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
-        return new BroadcastMessage($this->toArray($notifiable));
+        return (new BroadcastMessage($this->toArray($notifiable)))
+            ->onConnection('sync');
     }
 }

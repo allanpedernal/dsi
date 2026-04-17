@@ -31,9 +31,4 @@ class SalePolicy
     {
         return $user->can('sales.delete');
     }
-
-    public function refund(User $user, Sale $sale): bool
-    {
-        return $user->can('sales.refund');
-    }
 }

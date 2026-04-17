@@ -22,6 +22,20 @@ trait ProfileValidationRules
     }
 
     /**
+     * Registration rules — takes first_name + last_name and the rest of profileRules().
+     *
+     * @return array<string, array<int, ValidationRule|array<mixed>|string>>
+     */
+    protected function registrationRules(): array
+    {
+        return [
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'email' => $this->emailRules(),
+        ];
+    }
+
+    /**
      * Get the validation rules used to validate user names.
      *
      * @return array<int, ValidationRule|array<mixed>|string>

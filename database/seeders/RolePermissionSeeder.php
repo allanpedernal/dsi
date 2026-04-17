@@ -15,7 +15,7 @@ class RolePermissionSeeder extends Seeder
         'dashboard.view',
         'customers.view', 'customers.create', 'customers.update', 'customers.delete',
         'products.view', 'products.create', 'products.update', 'products.delete',
-        'sales.view', 'sales.create', 'sales.update', 'sales.delete', 'sales.refund',
+        'sales.view', 'sales.create', 'sales.update', 'sales.delete',
         'users.view', 'users.create', 'users.update', 'users.delete',
         'roles.view', 'roles.create', 'roles.update', 'roles.delete',
         'permissions.view', 'permissions.create', 'permissions.update', 'permissions.delete',
@@ -39,25 +39,17 @@ class RolePermissionSeeder extends Seeder
             'dashboard.view',
             'customers.view', 'customers.create', 'customers.update', 'customers.delete',
             'products.view', 'products.create', 'products.update', 'products.delete',
-            'sales.view', 'sales.create', 'sales.update', 'sales.refund',
+            'sales.view', 'sales.create', 'sales.update', 'sales.delete',
             'reports.view',
             'audit.view',
-        ]);
-
-        $cashier = Role::firstOrCreate(['name' => UserRole::Cashier->value, 'guard_name' => 'web']);
-        $cashier->syncPermissions([
-            'customers.view', 'customers.create',
-            'products.view',
-            'sales.view', 'sales.create',
         ]);
 
         $customer = Role::firstOrCreate(['name' => UserRole::Customer->value, 'guard_name' => 'web']);
         $customer->syncPermissions([
             'dashboard.view',
-            'products.view',
-            'sales.view',
+            'products.view', 'products.create', 'products.update', 'products.delete',
+            'sales.view', 'sales.create', 'sales.update', 'sales.delete',
             'reports.view',
-            'audit.view',
         ]);
     }
 }

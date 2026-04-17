@@ -26,9 +26,9 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
         ]);
 
-        $cashier = User::where('email', 'cashier@example.com')->first();
-        if ($cashier) {
-            Auth::setUser($cashier);
+        $manager = User::where('email', 'manager@example.com')->first();
+        if ($manager) {
+            Auth::setUser($manager);
         }
 
         $this->call([

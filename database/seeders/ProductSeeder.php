@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\Customer;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -13,18 +14,31 @@ class ProductSeeder extends Seeder
     {
         $admin = User::where('email', 'admin@example.com')->first();
         $categories = Category::all();
+        $customers = Customer::pluck('id');
 
-        if ($categories->isEmpty()) {
+        if ($categories->isEmpty() || $customers->isEmpty()) {
             return;
         }
 
-        Product::factory(30)
-            ->state(fn () => ['category_id' => $categories->random()->id, 'created_by' => $admin?->id])
-            ->create();
+        // Create products distributed across customers.
+        foreach ($customers as $customerId) {
+            Product::factory(6)
+                ->state(fn () => [
+                    'category_id' => $categories->random()->id,
+                    'customer_id' => $customerId,
+                    'created_by' => $admin?->id,
+                ])
+                ->create();
 
-        Product::factory(5)
-            ->lowStock()
-            ->state(fn () => ['category_id' => $categories->random()->id, 'created_by' => $admin?->id])
-            ->create();
+            // 1 low-stock product per customer.
+            Product::factory()
+                ->lowStock()
+                ->state(fn () => [
+                    'category_id' => $categories->random()->id,
+                    'customer_id' => $customerId,
+                    'created_by' => $admin?->id,
+                ])
+                ->create();
+        }
     }
 }

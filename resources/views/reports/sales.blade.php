@@ -34,7 +34,6 @@
         <th>Reference</th>
         <th>Date</th>
         <th>Customer</th>
-        <th>Cashier</th>
         <th>Status</th>
         <th class="right">Subtotal</th>
         <th class="right">Tax</th>
@@ -48,7 +47,6 @@
             <td>{{ $sale->reference }}</td>
             <td>{{ $sale->created_at?->format('Y-m-d H:i') }}</td>
             <td>{{ $sale->customer?->full_name }}</td>
-            <td>{{ $sale->cashier?->name }}</td>
             <td>{{ $sale->status->label() }}</td>
             <td class="right">{{ number_format($sale->subtotal, 2) }}</td>
             <td class="right">{{ number_format($sale->tax, 2) }}</td>

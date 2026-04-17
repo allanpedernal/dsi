@@ -69,7 +69,7 @@ export default function AuditLogIndex({ tenantScoped, customers }: Props) {
         { field: 'causer', headerName: 'By', flex: 1, minWidth: 100, valueGetter: (_, row) => row.causer?.name ?? 'System' },
         { field: 'ip_address', headerName: 'IP', width: 100 },
         {
-            field: 'actions', headerName: '', width: 48, sortable: false, filterable: false,
+            field: 'actions', headerName: 'Actions', width: 80, sortable: false, filterable: false,
             renderCell: ({ row }) => <IconButton size="small" onClick={() => setOpen(row)} title="View details"><Visibility fontSize="small" /></IconButton>,
         },
     ];

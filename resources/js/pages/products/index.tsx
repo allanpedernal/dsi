@@ -20,6 +20,7 @@ import { CustomerFilter, type CustomerOption } from '@/components/customer-filte
 type Category = { id: number; name: string };
 type Product = {
     id: number; sku: string; name: string; category: string | null; category_id: number | null;
+    customer_id: number | null; customer_name: string | null;
     price: number; cost: number; stock: number; reorder_level: number; is_active: boolean; is_low_stock: boolean;
     description: string | null;
 };
@@ -113,6 +114,7 @@ export default function ProductsIndex({ categories, tenantScoped, customers }: P
         { field: 'sku', headerName: 'SKU', width: 140 },
         { field: 'name', headerName: 'Name', flex: 1, minWidth: 180 },
         { field: 'category', headerName: 'Category', width: 140 },
+        ...(!tenantScoped ? [{ field: 'customer_name', headerName: 'Customer', width: 160 } as GridColDef<Product>] : []),
         { field: 'price', headerName: 'Price', width: 110, valueFormatter: (v) => '$' + Number(v).toFixed(2) },
         {
             field: 'stock', headerName: 'Stock', width: 130,

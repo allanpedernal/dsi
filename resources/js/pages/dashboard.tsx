@@ -215,20 +215,22 @@ export default function Dashboard({
                     </Panel>
                 </Box>
 
-                {/* Activity */}
-                <Panel title="Recent activity" right={<Typography variant="caption" color="text.secondary">{recent_activity.length} events</Typography>} noPad>
-                    {recent_activity.length === 0 ? <Empty text="No activity yet." height={160} /> : (
-                        recent_activity.map((a) => (
-                            <Row
-                                key={a.id}
-                                dot={a.source === 'web' ? 'primary.main' : a.source === 'api' ? 'secondary.main' : 'grey.400'}
-                                left={a.description}
-                                sub={`${a.causer ?? 'System'} · ${a.created_at}`}
-                                right={<Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>{a.source ?? 'system'}</Typography>}
-                            />
-                        ))
-                    )}
-                </Panel>
+                {/* Activity — hidden for customer users */}
+                {!filter.locked && (
+                    <Panel title="Recent activity" right={<Typography variant="caption" color="text.secondary">{recent_activity.length} events</Typography>} noPad>
+                        {recent_activity.length === 0 ? <Empty text="No activity yet." height={160} /> : (
+                            recent_activity.map((a) => (
+                                <Row
+                                    key={a.id}
+                                    dot={a.source === 'web' ? 'primary.main' : a.source === 'api' ? 'secondary.main' : 'grey.400'}
+                                    left={a.description}
+                                    sub={`${a.causer ?? 'System'} · ${a.created_at}`}
+                                    right={<Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>{a.source ?? 'system'}</Typography>}
+                                />
+                            ))
+                        )}
+                    </Panel>
+                )}
 
                 <Divider sx={{ mt: 3, mb: 1.5 }} />
                 <Typography variant="caption" color="text.disabled" sx={{ textAlign: 'center', display: 'block' }}>

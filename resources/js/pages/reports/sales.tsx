@@ -10,7 +10,7 @@ import { dataGridHeight } from '@/lib/data-grid-height';
 import { withDashFallback } from '@/lib/grid-utils';
 import { CustomerFilter, type CustomerOption } from '@/components/customer-filter';
 
-type Sale = { id: number; reference: string; total: number; status_label: string; created_at: string; customer?: { name: string }; cashier?: { name: string } };
+type Sale = { id: number; reference: string; total: number; status_label: string; created_at: string; customer?: { name: string } };
 type Aggregate = { count: number; subtotal: number; tax: number; discount: number; total: number };
 
 type Props = { tenantScoped: boolean; customers: CustomerOption[] };
@@ -58,10 +58,9 @@ export default function ReportsSales({ tenantScoped, customers }: Props) {
     };
 
     const columns: GridColDef<Sale>[] = [
-        { field: 'reference', headerName: 'Reference', width: 160 },
+        { field: 'reference', headerName: 'Reference', ...(tenantScoped ? { flex: 1, minWidth: 160 } : { width: 160 }) },
         { field: 'created_at', headerName: 'Date', width: 180, valueFormatter: (v) => v ? new Date(v as string).toLocaleString() : '' },
-        { field: 'customer', headerName: 'Customer', flex: 1, valueGetter: (_, row) => row.customer?.name },
-        { field: 'cashier', headerName: 'Cashier', width: 160, valueGetter: (_, row) => row.cashier?.name },
+        ...(!tenantScoped ? [{ field: 'customer', headerName: 'Customer', flex: 1, valueGetter: (_: unknown, row: Sale) => row.customer?.name } satisfies GridColDef<Sale>] : []),
         { field: 'status_label', headerName: 'Status', width: 120 },
         { field: 'total', headerName: 'Total', width: 130, valueFormatter: (v) => '$' + Number(v).toFixed(2) },
     ];
@@ -89,7 +88,6 @@ export default function ReportsSales({ tenantScoped, customers }: Props) {
                                 <MenuItem value="">All</MenuItem>
                                 <MenuItem value="paid">Paid</MenuItem>
                                 <MenuItem value="pending">Pending</MenuItem>
-                                <MenuItem value="refunded">Refunded</MenuItem>
                                 <MenuItem value="cancelled">Cancelled</MenuItem>
                             </TextField>
                             <CustomerFilter options={customers} value={customerId} onChange={setCustomerId} locked={tenantScoped} />

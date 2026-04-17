@@ -7,7 +7,7 @@ import {
     ToggleButtonGroup, Tooltip, Typography,
 } from '@mui/material';
 import {
-    ArrowBack, AddCircle, Delete, Receipt, Person, ShoppingCart,
+    ArrowBack, AddCircle, Delete, Edit as EditIcon, Person, ShoppingCart,
     Inventory2, AttachMoney, Percent, Note, Save as SaveIcon, Warning,
 } from '@mui/icons-material';
 import { toast } from 'sonner';
@@ -17,35 +17,74 @@ type Customer = { id: number; full_name: string; code: string };
 type Product = { id: number; name: string; sku: string; price: number; stock: number };
 type LineItem = { product?: Product; quantity: number };
 
+type SaleItem = { id: number; product_id: number; product_name: string; product_sku: string; unit_price: number; quantity: number; line_total: number };
+type Sale = {
+    id: number; reference: string; subtotal: number; tax: number; discount: number; total: number;
+    notes: string | null;
+    customer: { id: number; code: string; name: string };
+    items: SaleItem[];
+};
+
+type Props = {
+    sale: Sale;
+    lockedCustomer?: Customer | null;
+};
+
 const fmt = (n: number) =>
     '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export default function SalesCreate({ lockedCustomer }: { lockedCustomer?: Customer | null }) {
+export default function SalesEdit({ sale, lockedCustomer }: Props) {
     const isLocked = !!lockedCustomer;
 
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
-    const [customer, setCustomer] = useState<Customer | null>(lockedCustomer ?? null);
-    const [items, setItems] = useState<LineItem[]>([{ quantity: 1 }]);
-    const [taxPct, setTaxPct] = useState('10');
+    const [customer, setCustomer] = useState<Customer | null>(
+        lockedCustomer ?? { id: sale.customer.id, full_name: sale.customer.name, code: sale.customer.code },
+    );
+    const [items, setItems] = useState<LineItem[]>([]);
+    const [taxPct, setTaxPct] = useState(() => {
+        if (sale.subtotal > 0) return String(Math.round((sale.tax / sale.subtotal) * 100 * 100) / 100);
+        return '10';
+    });
     const [discountMode, setDiscountMode] = useState<'amount' | 'percent'>('amount');
-    const [discountValue, setDiscountValue] = useState('0');
-    const [notes, setNotes] = useState('');
+    const [discountValue, setDiscountValue] = useState(String(sale.discount));
+    const [notes, setNotes] = useState(sale.notes ?? '');
     const [submitting, setSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string[]>>({});
+    const [ready, setReady] = useState(false);
 
+    // Load customers list
     useEffect(() => {
         if (!isLocked) {
             api.get<{ data: Customer[] }>('/customers/data?per_page=500').then((r) => setCustomers(r.data));
         }
     }, [isLocked]);
 
+    // Load products when customer changes
     useEffect(() => {
         if (!customer) {
             setProducts([]);
             return;
         }
-        api.get<{ data: Product[] }>(`/products/data?per_page=500&customer_id=${customer.id}`).then((r) => setProducts(r.data));
+        api.get<{ data: Product[] }>(`/products/data?per_page=500&customer_id=${customer.id}`).then((r) => {
+            setProducts(r.data);
+
+            // Pre-fill line items from sale data once products are loaded for the first time.
+            if (!ready) {
+                const loaded = r.data;
+                setItems(
+                    sale.items.map((si) => {
+                        const product = loaded.find((p) => p.id === si.product_id);
+                        // If product found, use current price/stock. Otherwise build from snapshot.
+                        return {
+                            product: product ?? { id: si.product_id, name: si.product_name, sku: si.product_sku, price: si.unit_price, stock: si.quantity },
+                            quantity: si.quantity,
+                        };
+                    }),
+                );
+                setReady(true);
+            }
+        });
     }, [customer]);
 
     // Derived totals
@@ -91,9 +130,9 @@ export default function SalesCreate({ lockedCustomer }: { lockedCustomer?: Custo
                 notes: notes || null,
                 items: items.filter((i) => i.product).map((i) => ({ product_id: i.product!.id, quantity: i.quantity })),
             };
-            const res = await api.post<{ data: { id: number; reference: string } }>('/sales', payload);
-            toast.success(`Sale ${res.data.reference} recorded`);
-            router.visit(`/sales/${res.data.id}`);
+            await api.put(`/sales/${sale.id}`, payload);
+            toast.success(`Sale ${sale.reference} updated`);
+            router.visit(`/sales/${sale.id}`);
         } catch (e) {
             const err = e as { errors?: Record<string, string[]>; message?: string };
             if (err.errors) setErrors(err.errors);
@@ -105,27 +144,27 @@ export default function SalesCreate({ lockedCustomer }: { lockedCustomer?: Custo
 
     return (
         <>
-            <Head title="New Sale" />
+            <Head title={`Edit ${sale.reference}`} />
 
             <Box sx={{ p: 3 }}>
                 {/* Top bar */}
                 <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                    <Button component={Link} href="/sales" startIcon={<ArrowBack />} variant="text">
-                        Back to sales
+                    <Button component={Link} href={`/sales/${sale.id}`} startIcon={<ArrowBack />} variant="text">
+                        Back to sale
                     </Button>
                     <Box sx={{ flexGrow: 1 }} />
                 </Stack>
 
                 <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
                     <Avatar variant="rounded" sx={{ bgcolor: 'primary.main', width: 48, height: 48 }}>
-                        <Receipt />
+                        <EditIcon />
                     </Avatar>
                     <Box>
                         <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 1 }}>
-                            New transaction
+                            Edit transaction
                         </Typography>
                         <Typography variant="h5" fontWeight={700} sx={{ lineHeight: 1.2 }}>
-                            Record a sale
+                            {sale.reference}
                         </Typography>
                     </Box>
                 </Stack>
@@ -156,6 +195,7 @@ export default function SalesCreate({ lockedCustomer }: { lockedCustomer?: Custo
                                             onChange={(_, v) => {
                                                 setCustomer(v);
                                                 setItems([{ quantity: 1 }]);
+                                                setReady(false);
                                             }}
                                             isOptionEqualToValue={(a, b) => a.id === b.id}
                                             renderInput={(params) => (
@@ -181,12 +221,7 @@ export default function SalesCreate({ lockedCustomer }: { lockedCustomer?: Custo
                                         <Typography variant="subtitle1" fontWeight={600}>Line items</Typography>
                                         <Chip size="small" label="Step 2" />
                                         <Box sx={{ flexGrow: 1 }} />
-                                        <Button
-                                            startIcon={<AddCircle />}
-                                            variant="outlined"
-                                            size="small"
-                                            onClick={addLine}
-                                        >
+                                        <Button startIcon={<AddCircle />} variant="outlined" size="small" onClick={addLine}>
                                             Add line
                                         </Button>
                                     </Stack>
@@ -448,7 +483,7 @@ export default function SalesCreate({ lockedCustomer }: { lockedCustomer?: Custo
                                         onClick={submit}
                                         startIcon={<SaveIcon />}
                                     >
-                                        Record sale
+                                        Update sale
                                     </Button>
 
                                     {!customer && (
@@ -464,7 +499,7 @@ export default function SalesCreate({ lockedCustomer }: { lockedCustomer?: Custo
 
                                     <Button
                                         component={Link}
-                                        href="/sales"
+                                        href={`/sales/${sale.id}`}
                                         variant="text"
                                         fullWidth
                                         size="small"

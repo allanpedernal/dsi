@@ -1,22 +1,23 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { Box, Button, Chip, InputAdornment, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { toast } from 'sonner';
+import { Box, Button, Chip, IconButton, InputAdornment, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { Add, Visibility, Search, FilterAlt } from '@mui/icons-material';
+import { Add, Visibility, Edit, Delete, Search, FilterAlt } from '@mui/icons-material';
 import { api } from '@/lib/api';
 import { dataGridHeight } from '@/lib/data-grid-height';
 import { withDashFallback } from '@/lib/grid-utils';
 import { CustomerFilter, type CustomerOption } from '@/components/customer-filter';
+import { useConfirm } from '@/components/confirm-provider';
 
 type Sale = {
     id: number; reference: string; status: string; status_label: string;
     total: number; source: string; created_at: string;
     customer?: { id: number; name: string };
-    cashier?: { id: number; name: string };
 };
 
 const statusColor = (s: string) =>
-    s === 'paid' ? 'success' : s === 'pending' ? 'warning' : s === 'refunded' ? 'info' : 'default';
+    s === 'paid' ? 'success' : s === 'pending' ? 'warning' : 'default';
 
 type Props = {
     statuses: Record<string, string>;
@@ -27,6 +28,7 @@ type Props = {
 export default function SalesIndex({ statuses, tenantScoped, customers }: Props) {
     const page = usePage<{ auth: { permissions?: string[] } }>();
     const can = (p: string) => (page.props.auth?.permissions ?? []).includes(p);
+    const confirm = useConfirm();
 
     const [rows, setRows] = useState<Sale[]>([]);
     const [total, setTotal] = useState(0);
@@ -51,18 +53,38 @@ export default function SalesIndex({ statuses, tenantScoped, customers }: Props)
 
     useEffect(() => { load(); }, [load]);
 
+    const handleDelete = async (row: Sale) => {
+        const ok = await confirm({
+            title: 'Delete sale',
+            description: `Are you sure you want to delete sale ${row.reference}? This action cannot be undone.`,
+            confirmText: 'Delete',
+            tone: 'error',
+        });
+        if (!ok) return;
+        try {
+            await api.delete(`/sales/${row.id}`);
+            toast.success(`Sale ${row.reference} deleted`);
+            load();
+        } catch {
+            toast.error('Failed to delete sale');
+        }
+    };
+
     const columns: GridColDef<Sale>[] = [
-        { field: 'reference', headerName: 'Reference', width: 160 },
+        { field: 'reference', headerName: 'Reference', ...(tenantScoped ? { flex: 1, minWidth: 160 } : { width: 160 }) },
         { field: 'created_at', headerName: 'Date', width: 180, valueFormatter: (v) => v ? new Date(v as string).toLocaleString() : '' },
-        { field: 'customer', headerName: 'Customer', flex: 1, minWidth: 180, valueGetter: (_, row) => row.customer?.name },
-        { field: 'cashier', headerName: 'Cashier', width: 160, valueGetter: (_, row) => row.cashier?.name },
+        ...(!tenantScoped ? [{ field: 'customer', headerName: 'Customer', flex: 1, minWidth: 180, valueGetter: (_: unknown, row: Sale) => row.customer?.name } satisfies GridColDef<Sale>] : []),
         { field: 'total', headerName: 'Total', width: 120, valueFormatter: (v) => '$' + Number(v).toFixed(2) },
         { field: 'status', headerName: 'Status', width: 120, renderCell: ({ row }) => <Chip size="small" color={statusColor(row.status) as any} label={row.status_label} /> },
         { field: 'source', headerName: 'Source', width: 90, renderCell: ({ value }) => <Chip size="small" variant="outlined" label={String(value)} /> },
         {
-            field: 'actions', headerName: '', width: 80, sortable: false, filterable: false,
+            field: 'actions', headerName: 'Actions', width: 130, sortable: false, filterable: false,
             renderCell: ({ row }) => (
-                <Link href={`/sales/${row.id}`}><Visibility fontSize="small" /></Link>
+                <Stack direction="row" spacing={0.5}>
+                    <Tooltip title="View"><IconButton component={Link} href={`/sales/${row.id}`} size="small"><Visibility fontSize="small" /></IconButton></Tooltip>
+                    {can('sales.update') && <Tooltip title="Edit"><IconButton component={Link} href={`/sales/${row.id}/edit`} size="small"><Edit fontSize="small" /></IconButton></Tooltip>}
+                    {can('sales.delete') && <Tooltip title="Delete"><IconButton size="small" color="error" onClick={() => handleDelete(row)}><Delete fontSize="small" /></IconButton></Tooltip>}
+                </Stack>
             ),
         },
     ];

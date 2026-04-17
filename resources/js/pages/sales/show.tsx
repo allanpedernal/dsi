@@ -1,9 +1,12 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import {
     Box, Button, Card, CardContent, Chip, Divider, Paper, Stack, Table, TableBody,
     TableCell, TableContainer, TableHead, TableRow, Typography,
 } from '@mui/material';
-import { ArrowBack, Print, Language } from '@mui/icons-material';
+import { ArrowBack, Print, Edit, Delete, Language } from '@mui/icons-material';
+import { toast } from 'sonner';
+import { api } from '@/lib/api';
+import { useConfirm } from '@/components/confirm-provider';
 
 type SaleItem = { id: number; product_name: string; product_sku: string; unit_price: number; quantity: number; line_total: number };
 type Sale = {
@@ -11,7 +14,6 @@ type Sale = {
     subtotal: number; tax: number; discount: number; total: number;
     paid_at: string | null; notes: string | null; source: string; created_at: string;
     customer: { id: number; code: string; name: string };
-    cashier: { id: number; name: string };
     items: SaleItem[];
 };
 
@@ -19,7 +21,7 @@ const fmt = (n: number) =>
     '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const statusColor = (s: string): 'success' | 'warning' | 'info' | 'default' =>
-    s === 'paid' ? 'success' : s === 'pending' ? 'warning' : s === 'refunded' ? 'info' : 'default';
+    s === 'paid' ? 'success' : s === 'pending' ? 'warning' : 'default';
 
 function Field({ label, primary, secondary }: { label: string; primary: React.ReactNode; secondary?: React.ReactNode }) {
     return (
@@ -68,8 +70,28 @@ function TotalsRow({ label, value, muted = false, bold = false, big = false }: {
 }
 
 export default function SaleShow({ sale }: { sale: Sale }) {
+    const page = usePage<{ auth: { permissions?: string[] } }>();
+    const can = (p: string) => (page.props.auth?.permissions ?? []).includes(p);
+    const confirm = useConfirm();
     const totalQty = sale.items.reduce((s, i) => s + i.quantity, 0);
     const issued = new Date(sale.created_at);
+
+    const handleDelete = async () => {
+        const ok = await confirm({
+            title: 'Delete sale',
+            description: `Are you sure you want to delete sale ${sale.reference}? This action cannot be undone.`,
+            confirmText: 'Delete',
+            tone: 'error',
+        });
+        if (!ok) return;
+        try {
+            await api.delete(`/sales/${sale.id}`);
+            toast.success(`Sale ${sale.reference} deleted`);
+            window.location.href = '/sales';
+        } catch {
+            toast.error('Failed to delete sale');
+        }
+    };
 
     return (
         <>
@@ -82,6 +104,16 @@ export default function SaleShow({ sale }: { sale: Sale }) {
                         Back to sales
                     </Button>
                     <Box sx={{ flexGrow: 1 }} />
+                    {can('sales.update') && (
+                        <Button component={Link} href={`/sales/${sale.id}/edit`} startIcon={<Edit />} variant="outlined">
+                            Edit
+                        </Button>
+                    )}
+                    {can('sales.delete') && (
+                        <Button startIcon={<Delete />} variant="outlined" color="error" onClick={handleDelete}>
+                            Delete
+                        </Button>
+                    )}
                     <Button startIcon={<Print />} variant="outlined" onClick={() => window.print()}>
                         Print
                     </Button>
@@ -144,7 +176,6 @@ export default function SaleShow({ sale }: { sale: Sale }) {
                             }}
                         >
                             <Field label="Bill to" primary={sale.customer.name} secondary={sale.customer.code} />
-                            <Field label="Cashier" primary={sale.cashier.name} />
                             <Field
                                 label="Date"
                                 primary={issued.toLocaleDateString()}

@@ -18,7 +18,7 @@ import { useConfirm } from '@/components/confirm-provider';
 type Role = { value: string; label: string };
 type User = { id: number; name: string; email: string; roles: string[]; created_at: string };
 
-const empty = { name: '', email: '', password: '', password_confirmation: '', role: 'cashier' };
+const empty = { name: '', email: '', password: '', password_confirmation: '', role: 'manager' };
 
 export default function UsersIndex({ roles }: { roles: Role[] }) {
     const page = usePage<{ auth: { permissions?: string[] } }>();
@@ -50,7 +50,7 @@ export default function UsersIndex({ roles }: { roles: Role[] }) {
     const openCreate = () => { setEditing(null); setForm(empty); setErrors({}); setOpen(true); };
     const openEdit = (row: User) => {
         setEditing(row);
-        setForm({ name: row.name, email: row.email, password: '', password_confirmation: '', role: row.roles[0] ?? 'cashier' });
+        setForm({ name: row.name, email: row.email, password: '', password_confirmation: '', role: row.roles[0] ?? 'manager' });
         setErrors({}); setOpen(true);
     };
 

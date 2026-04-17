@@ -34,7 +34,6 @@ const RESOURCE_ICONS: Record<string, ReactNode> = {
 const ROLE_COLORS: Record<string, 'error' | 'warning' | 'success' | 'info' | 'default'> = {
     admin: 'error',
     manager: 'warning',
-    cashier: 'success',
     customer: 'info',
 };
 

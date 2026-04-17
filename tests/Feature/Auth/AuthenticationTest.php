@@ -40,20 +40,6 @@ test('users without any access are redirected to the welcome home', function () 
     $response->assertRedirect('/home');
 });
 
-test('cashiers are redirected to sales after login', function () {
-    $this->seed(RolePermissionSeeder::class);
-    $user = User::factory()->create();
-    $user->assignRole(UserRole::Cashier->value);
-
-    $response = $this->post(route('login.store'), [
-        'email' => $user->email,
-        'password' => 'password',
-    ]);
-
-    $this->assertAuthenticated();
-    $response->assertRedirect('/sales');
-});
-
 test('users with two factor enabled are redirected to two factor challenge', function () {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 

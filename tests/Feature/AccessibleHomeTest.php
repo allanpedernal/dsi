@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\UserRole;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,7 +12,8 @@ beforeEach(function () {
 
 it('redirects a forbidden page to the first accessible page', function () {
     $user = User::factory()->create();
-    $user->assignRole(UserRole::Cashier->value);
+    // Give only sales.view — no dashboard.view, so /dashboard should redirect to /sales.
+    $user->givePermissionTo('sales.view');
 
     $this->actingAs($user)
         ->get(route('dashboard'))
@@ -39,7 +39,7 @@ it('renders the welcome home page for users with no permissions', function () {
 
 it('redirects /home to the first accessible page when the user has access somewhere', function () {
     $user = User::factory()->create();
-    $user->assignRole(UserRole::Cashier->value);
+    $user->givePermissionTo('sales.view');
 
     $this->actingAs($user)
         ->get('/home')

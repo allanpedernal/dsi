@@ -19,14 +19,14 @@ beforeEach(function () {
     $this->productA = Product::factory()->create(['customer_id' => $this->customerA->id]);
     $this->productB = Product::factory()->create(['customer_id' => $this->customerB->id]);
 
-    $cashier = User::factory()->create();
-    $cashier->assignRole(UserRole::Cashier->value);
+    $manager = User::factory()->create();
+    $manager->assignRole(UserRole::Manager->value);
     $this->admin = User::factory()->create();
     $this->admin->assignRole(UserRole::Admin->value);
 
-    Sale::factory()->create(['customer_id' => $this->customerA->id, 'user_id' => $cashier->id]);
-    Sale::factory()->create(['customer_id' => $this->customerA->id, 'user_id' => $cashier->id]);
-    Sale::factory()->create(['customer_id' => $this->customerB->id, 'user_id' => $cashier->id]);
+    Sale::factory()->create(['customer_id' => $this->customerA->id, 'user_id' => $manager->id]);
+    Sale::factory()->create(['customer_id' => $this->customerA->id, 'user_id' => $manager->id]);
+    Sale::factory()->create(['customer_id' => $this->customerB->id, 'user_id' => $manager->id]);
 });
 
 function tenantUser(int $customerId): User

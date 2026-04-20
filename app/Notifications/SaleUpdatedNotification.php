@@ -8,9 +8,9 @@ use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * Notifies admin / manager users that a new sale has been recorded.
+ * Notifies admin / manager users that a sale has been updated.
  */
-class NewSaleNotification extends Notification implements ShouldBroadcastNow
+class SaleUpdatedNotification extends Notification implements ShouldBroadcastNow
 {
     public function __construct(public Sale $sale) {}
 
@@ -28,13 +28,13 @@ class NewSaleNotification extends Notification implements ShouldBroadcastNow
     public function toArray(object $notifiable): array
     {
         return [
-            'action' => 'created',
+            'action' => 'updated',
             'sale_id' => $this->sale->id,
             'reference' => $this->sale->reference,
             'total' => (float) $this->sale->total,
             'customer' => $this->sale->customer?->full_name,
-            'message' => "New sale {$this->sale->reference} (\$".number_format((float) $this->sale->total, 2).')',
-            'created_at' => $this->sale->created_at?->toIso8601String(),
+            'message' => "Sale {$this->sale->reference} updated (\$".number_format((float) $this->sale->total, 2).')',
+            'updated_at' => $this->sale->updated_at?->toIso8601String(),
         ];
     }
 

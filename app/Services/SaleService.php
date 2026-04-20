@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Enums\SaleStatus;
 use App\Events\SaleCreated;
+use App\Events\SaleDeleted;
+use App\Events\SaleUpdated;
 use App\Exceptions\InsufficientStockException;
 use App\Models\Product;
 use App\Models\Sale;
@@ -14,10 +16,16 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Transactionally creates, updates, and deletes sales while maintaining product stock.
+ */
 class SaleService
 {
     /**
+     * Paginate sales, honouring tenant scoping and the standard search/sort filters.
+     *
      * @param  array{search?: ?string, status?: ?string, from?: ?string, to?: ?string, customer_id?: ?int, user_id?: ?int, per_page?: ?int, sort?: ?string, dir?: ?string}  $filters
+     * @return LengthAwarePaginator<int, Sale>
      */
     public function paginate(array $filters = []): LengthAwarePaginator
     {
@@ -42,6 +50,8 @@ class SaleService
      * Create a sale transactionally with stock locking.
      *
      * @param  array{customer_id:int, user_id?:int, items:array<int,array{product_id:int,quantity:int}>, tax_rate?:float, discount?:float, notes?:?string, source?:string}  $data
+     *
+     * @throws InsufficientStockException when any requested line exceeds on-hand stock.
      */
     public function create(array $data, ?User $actingUser = null): Sale
     {
@@ -117,6 +127,8 @@ class SaleService
      * Update a sale transactionally with stock adjustments.
      *
      * @param  array{customer_id?:int, items?:array<int,array{product_id:int,quantity:int}>, tax_rate?:float, discount?:float, notes?:?string}  $data
+     *
+     * @throws InsufficientStockException when a replaced line exceeds on-hand stock.
      */
     public function update(Sale $sale, array $data): Sale
     {
@@ -184,15 +196,35 @@ class SaleService
             $sale->save();
             $sale->load(['customer', 'items']);
 
+            DB::afterCommit(fn () => event(new SaleUpdated($sale)));
+
             return $sale;
         });
     }
 
+    /** Soft-delete a sale and broadcast its removal to listeners. */
+    public function delete(Sale $sale): void
+    {
+        $id = (int) $sale->id;
+        $reference = (string) $sale->reference;
+
+        $sale->delete();
+
+        event(new SaleDeleted($id, $reference));
+    }
+
+    /** Generate the next sequential SO-YYYY-NNNNN reference for this year. */
     private function nextReference(): string
     {
         $year = now()->year;
-        $count = Sale::whereYear('created_at', $year)->count() + 1;
+        $prefix = sprintf('SO-%d-', $year);
 
-        return sprintf('SO-%d-%05d', $year, $count);
+        $maxRef = Sale::withTrashed()
+            ->where('reference', 'like', $prefix.'%')
+            ->max('reference');
+
+        $next = $maxRef ? ((int) substr($maxRef, strlen($prefix))) + 1 : 1;
+
+        return sprintf('%s%05d', $prefix, $next);
     }
 }

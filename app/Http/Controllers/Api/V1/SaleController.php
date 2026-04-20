@@ -83,7 +83,7 @@ class SaleController extends Controller
     public function destroy(Sale $sale): JsonResponse
     {
         $this->authorize('delete', $sale);
-        $sale->delete();
+        $this->service->delete($sale);
 
         return ApiResponse::ok(null, 'Deleted');
     }

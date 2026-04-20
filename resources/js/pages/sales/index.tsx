@@ -9,6 +9,7 @@ import { dataGridHeight } from '@/lib/data-grid-height';
 import { withDashFallback } from '@/lib/grid-utils';
 import { CustomerFilter, type CustomerOption } from '@/components/customer-filter';
 import { useConfirm } from '@/components/confirm-provider';
+import { initEcho } from '@/echo';
 
 type Sale = {
     id: number; reference: string; status: string; status_label: string;
@@ -52,6 +53,25 @@ export default function SalesIndex({ statuses, tenantScoped, customers }: Props)
     }, [paginationModel, search, status, customerId]);
 
     useEffect(() => { load(); }, [load]);
+
+    useEffect(() => {
+        const echo = initEcho();
+        if (!echo) return;
+        const channel = echo.private('sales.admin');
+        channel.listen('.SalesListChanged', (e: { action: 'created' | 'updated' | 'deleted'; reference: string }) => {
+            const msg =
+                e.action === 'created' ? `New sale ${e.reference} added` :
+                e.action === 'updated' ? `Sale ${e.reference} updated` :
+                `Sale ${e.reference} deleted`;
+            if (e.action === 'deleted') {
+                toast.error(msg);
+            } else {
+                toast.success(msg);
+            }
+            load();
+        });
+        return () => { echo.leave('private-sales.admin'); };
+    }, [load]);
 
     const handleDelete = async (row: Sale) => {
         const ok = await confirm({

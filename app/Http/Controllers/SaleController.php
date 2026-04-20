@@ -15,10 +15,14 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Web controller backing the sales UI (list, create, edit, show) and its JSON endpoints.
+ */
 class SaleController extends Controller
 {
     public function __construct(private SaleService $service) {}
 
+    /** Render the sales index page with status, tenant, and customer filter options. */
     public function index(Request $request): Response
     {
         $this->authorize('viewAny', Sale::class);
@@ -41,6 +45,7 @@ class SaleController extends Controller
             ->all();
     }
 
+    /** Render the create-sale page, locking the customer picker for tenant-scoped users. */
     public function create(Request $request): Response
     {
         $this->authorize('create', Sale::class);
@@ -63,6 +68,7 @@ class SaleController extends Controller
         ]);
     }
 
+    /** Return paginated sales as JSON for the data table. */
     public function data(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Sale::class);
@@ -73,6 +79,7 @@ class SaleController extends Controller
         return ApiResponse::ok(SaleResource::collection($sales));
     }
 
+    /** Render the sale detail page (or JSON when the client requests it). */
     public function show(Sale $sale): Response|JsonResponse
     {
         $this->authorize('view', $sale);
@@ -87,6 +94,7 @@ class SaleController extends Controller
         ]);
     }
 
+    /** Record a new sale from web and broadcast the creation event. */
     public function store(StoreSaleRequest $request): JsonResponse
     {
         $sale = $this->service->create(
@@ -97,6 +105,7 @@ class SaleController extends Controller
         return ApiResponse::created(new SaleResource($sale), 'Sale recorded');
     }
 
+    /** Render the edit-sale page, locking the customer picker for tenant-scoped users. */
     public function edit(Request $request, Sale $sale): Response
     {
         $this->authorize('update', $sale);
@@ -121,6 +130,7 @@ class SaleController extends Controller
         ]);
     }
 
+    /** Update an existing sale and broadcast the update event. */
     public function update(UpdateSaleRequest $request, Sale $sale): JsonResponse
     {
         $this->authorize('update', $sale);
@@ -129,10 +139,11 @@ class SaleController extends Controller
         return ApiResponse::ok(new SaleResource($sale), 'Sale updated');
     }
 
+    /** Soft-delete a sale and broadcast the deletion event. */
     public function destroy(Sale $sale): JsonResponse
     {
         $this->authorize('delete', $sale);
-        $sale->delete();
+        $this->service->delete($sale);
 
         return ApiResponse::ok(null, 'Sale deleted');
     }

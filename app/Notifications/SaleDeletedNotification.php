@@ -2,17 +2,16 @@
 
 namespace App\Notifications;
 
-use App\Models\Sale;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * Notifies admin / manager users that a new sale has been recorded.
+ * Notifies admin / manager users that a sale has been deleted.
  */
-class NewSaleNotification extends Notification implements ShouldBroadcastNow
+class SaleDeletedNotification extends Notification implements ShouldBroadcastNow
 {
-    public function __construct(public Sale $sale) {}
+    public function __construct(public int $saleId, public string $reference) {}
 
     /** @return array<int, string> */
     public function via(object $notifiable): array
@@ -28,13 +27,11 @@ class NewSaleNotification extends Notification implements ShouldBroadcastNow
     public function toArray(object $notifiable): array
     {
         return [
-            'action' => 'created',
-            'sale_id' => $this->sale->id,
-            'reference' => $this->sale->reference,
-            'total' => (float) $this->sale->total,
-            'customer' => $this->sale->customer?->full_name,
-            'message' => "New sale {$this->sale->reference} (\$".number_format((float) $this->sale->total, 2).')',
-            'created_at' => $this->sale->created_at?->toIso8601String(),
+            'action' => 'deleted',
+            'sale_id' => $this->saleId,
+            'reference' => $this->reference,
+            'message' => "Sale {$this->reference} deleted",
+            'deleted_at' => now()->toIso8601String(),
         ];
     }
 

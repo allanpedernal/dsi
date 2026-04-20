@@ -7,9 +7,9 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Fired after a new sale is persisted; drives notifications and sales-list refresh.
+ * Fired after a sale is updated; drives notifications and sales-list refresh.
  */
-class SaleCreated
+class SaleUpdated
 {
     use Dispatchable, SerializesModels;
 

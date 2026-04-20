@@ -24,6 +24,7 @@ class AuditContext
         $this->requestId = (string) Str::uuid();
     }
 
+    /** Stamp the current request's audit source and network fingerprint. */
     public function set(AuditSource $source, ?string $ip = null, ?string $ua = null): void
     {
         $this->source = $source;
@@ -42,6 +43,7 @@ class AuditContext
         ];
     }
 
+    /** Current audit source (defaults to System until middleware sets it). */
     public function source(): AuditSource
     {
         return $this->source;

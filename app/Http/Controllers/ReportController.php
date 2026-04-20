@@ -16,10 +16,14 @@ use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
+/**
+ * Web controller for sales report UI and its JSON / PDF / Excel / CSV exports.
+ */
 class ReportController extends Controller
 {
     public function __construct(private ReportService $service) {}
 
+    /** Render the sales report page with tenant-scoped customer filter options. */
     public function sales(Request $request): Response
     {
         abort_unless($request->user()?->can('reports.view'), 403);
@@ -35,6 +39,7 @@ class ReportController extends Controller
         ]);
     }
 
+    /** Return paginated sales rows plus aggregate totals as JSON for the report table. */
     public function salesData(Request $request): JsonResponse
     {
         abort_unless($request->user()?->can('reports.view'), 403);
@@ -49,6 +54,7 @@ class ReportController extends Controller
         return ApiResponse::ok($payload);
     }
 
+    /** Stream the filtered sales report rendered as a landscape A4 PDF download. */
     public function salesPdf(Request $request): HttpResponse
     {
         abort_unless($request->user()?->can('reports.view'), 403);
@@ -67,6 +73,7 @@ class ReportController extends Controller
         return $pdf->download('sales-report-'.now()->format('Ymd-His').'.pdf');
     }
 
+    /** Stream the filtered sales report as an Excel (xlsx) or CSV download. */
     public function salesExcel(Request $request): BinaryFileResponse
     {
         abort_unless($request->user()?->can('reports.view'), 403);

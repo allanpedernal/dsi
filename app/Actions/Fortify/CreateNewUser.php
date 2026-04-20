@@ -13,6 +13,9 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Spatie\Permission\Models\Role;
 
+/**
+ * Fortify action: creates a user + linked customer pivot on registration.
+ */
 class CreateNewUser implements CreatesNewUsers
 {
     use PasswordValidationRules, ProfileValidationRules;

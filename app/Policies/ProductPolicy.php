@@ -5,6 +5,9 @@ namespace App\Policies;
 use App\Models\Product;
 use App\Models\User;
 
+/**
+ * Authorises product-related actions against the `products.*` permission set.
+ */
 class ProductPolicy
 {
     public function viewAny(User $user): bool

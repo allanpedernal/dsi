@@ -3,10 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\UserRole;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
+/**
+ * Validates payload for creating a new user with an assigned role.
+ */
 class StoreUserRequest extends FormRequest
 {
     public function authorize(): bool
@@ -14,7 +18,9 @@ class StoreUserRequest extends FormRequest
         return $this->user()?->can('users.create') ?? false;
     }
 
-    /** @return array<string, array<int, mixed>|string> */
+    /**
+     * @return array<string, ValidationRule|array<int, mixed>|string>
+     */
     public function rules(): array
     {
         return [

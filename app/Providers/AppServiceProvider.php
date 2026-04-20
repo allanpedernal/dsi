@@ -11,13 +11,18 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
+/**
+ * Binds the request-scoped AuditContext and applies app-wide defaults (dates, password rules, admin gate).
+ */
 class AppServiceProvider extends ServiceProvider
 {
+    /** Register a request-scoped AuditContext so middleware and models share it. */
     public function register(): void
     {
         $this->app->scoped(AuditContext::class, fn () => new AuditContext);
     }
 
+    /** Apply safe Carbon/DB/password defaults, then short-circuit gates for admins. */
     public function boot(): void
     {
         $this->configureDefaults();
@@ -27,9 +32,7 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
-    /**
-     * Configure default behaviors for production-ready applications.
-     */
+    /** Apply Carbon immutability, production DB guards, and strong password defaults. */
     protected function configureDefaults(): void
     {
         Date::use(CarbonImmutable::class);

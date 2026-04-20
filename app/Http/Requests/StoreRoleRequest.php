@@ -2,9 +2,13 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Validates payload for creating a new Spatie role with a machine-friendly name.
+ */
 class StoreRoleRequest extends FormRequest
 {
     public function authorize(): bool
@@ -12,7 +16,9 @@ class StoreRoleRequest extends FormRequest
         return $this->user()?->can('roles.create') ?? false;
     }
 
-    /** @return array<string, array<int, mixed>|string> */
+    /**
+     * @return array<string, ValidationRule|array<int, mixed>|string>
+     */
     public function rules(): array
     {
         return [

@@ -15,10 +15,14 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Web controller backing the product catalogue UI and its JSON data endpoints.
+ */
 class ProductController extends Controller
 {
     public function __construct(private ProductService $service) {}
 
+    /** Render the products index page with category and tenant customer options. */
     public function index(Request $request): Response
     {
         $this->authorize('viewAny', Product::class);
@@ -35,6 +39,7 @@ class ProductController extends Controller
         ]);
     }
 
+    /** Return paginated products as JSON for the data table. */
     public function data(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Product::class);
@@ -45,6 +50,7 @@ class ProductController extends Controller
         return ApiResponse::ok(ProductResource::collection($products));
     }
 
+    /** Return a single product with its category eager-loaded. */
     public function show(Product $product): JsonResponse
     {
         $this->authorize('view', $product);
@@ -53,6 +59,7 @@ class ProductController extends Controller
         return ApiResponse::ok(new ProductResource($product));
     }
 
+    /** Create a new product stamped with the acting user as creator. */
     public function store(StoreProductRequest $request): JsonResponse
     {
         $product = $this->service->create($request->validated(), $request->user()->id);
@@ -60,6 +67,7 @@ class ProductController extends Controller
         return ApiResponse::created(new ProductResource($product), 'Product created');
     }
 
+    /** Update an existing product stamped with the acting user as editor. */
     public function update(UpdateProductRequest $request, Product $product): JsonResponse
     {
         $product = $this->service->update($product, $request->validated(), $request->user()->id);
@@ -67,6 +75,7 @@ class ProductController extends Controller
         return ApiResponse::ok(new ProductResource($product), 'Product updated');
     }
 
+    /** Soft-delete a product. */
     public function destroy(Product $product): JsonResponse
     {
         $this->authorize('delete', $product);

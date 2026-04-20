@@ -450,7 +450,6 @@
                             "enum": [
                                 "pending",
                                 "paid",
-                                "refunded",
                                 "cancelled"
                             ]
                         }

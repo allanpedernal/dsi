@@ -6,14 +6,15 @@ use App\Concerns\ProfileValidationRules;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates profile updates (name + email uniqueness ignoring the acting user).
+ */
 class ProfileUpdateRequest extends FormRequest
 {
     use ProfileValidationRules;
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<int, mixed>|string>
      */
     public function rules(): array
     {

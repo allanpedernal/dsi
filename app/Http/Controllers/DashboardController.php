@@ -15,8 +15,12 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Activitylog\Models\Activity;
 
+/**
+ * Renders the landing dashboard with cached revenue, order, and activity metrics.
+ */
 class DashboardController extends Controller
 {
+    /** Render the dashboard page with cached KPI metrics scoped to the acting user. */
     public function index(Request $request): Response
     {
         $user = $request->user();
@@ -41,7 +45,11 @@ class DashboardController extends Controller
         return Inertia::render('dashboard', $props);
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Compute today/month revenue, trend, top products, low stock, and recent activity.
+     *
+     * @return array<string, mixed>
+     */
     private function buildMetrics(?int $customerId): array
     {
         $today = Carbon::today();

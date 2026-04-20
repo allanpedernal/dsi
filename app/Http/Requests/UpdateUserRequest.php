@@ -3,10 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\UserRole;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
+/**
+ * Validates payload for updating an existing user; password is optional on update.
+ */
 class UpdateUserRequest extends FormRequest
 {
     public function authorize(): bool
@@ -14,7 +18,9 @@ class UpdateUserRequest extends FormRequest
         return $this->user()?->can('users.update') ?? false;
     }
 
-    /** @return array<string, array<int, mixed>|string> */
+    /**
+     * @return array<string, ValidationRule|array<int, mixed>|string>
+     */
     public function rules(): array
     {
         $id = $this->route('user')?->id ?? $this->route('user');

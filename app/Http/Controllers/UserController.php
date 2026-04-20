@@ -14,10 +14,14 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Web controller backing the users management UI and its JSON data endpoints.
+ */
 class UserController extends Controller
 {
     public function __construct(private UserService $service) {}
 
+    /** Render the users index page with the role picker. */
     public function index(): Response
     {
         $this->authorize('viewAny', User::class);
@@ -27,6 +31,7 @@ class UserController extends Controller
         ]);
     }
 
+    /** Return paginated users with their roles as JSON for the data table. */
     public function data(Request $request): JsonResponse
     {
         $this->authorize('viewAny', User::class);
@@ -35,6 +40,7 @@ class UserController extends Controller
         return ApiResponse::ok(UserResource::collection($users->loadMissing('roles')));
     }
 
+    /** Create a new user and optionally assign a role. */
     public function store(StoreUserRequest $request): JsonResponse
     {
         $user = $this->service->create($request->validated());
@@ -42,6 +48,7 @@ class UserController extends Controller
         return ApiResponse::created(new UserResource($user->load('roles')), 'User created');
     }
 
+    /** Update an existing user; re-hashes the password only when supplied. */
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
         $user = $this->service->update($user, $request->validated());
@@ -49,6 +56,7 @@ class UserController extends Controller
         return ApiResponse::ok(new UserResource($user->load('roles')), 'User updated');
     }
 
+    /** Delete a user; the policy blocks self-deletion. */
     public function destroy(User $user): JsonResponse
     {
         $this->authorize('delete', $user);

@@ -14,6 +14,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
 
+/**
+ * Web controller backing the roles-and-permissions UI and its JSON data endpoints.
+ */
 class RoleController extends Controller
 {
     /** @var array<int, string> Built-in roles that cannot be deleted. */
@@ -25,6 +28,7 @@ class RoleController extends Controller
 
     public function __construct(private RoleService $service) {}
 
+    /** Render the roles management page. */
     public function index(Request $request): Response
     {
         abort_unless($request->user()?->can('roles.view'), 403);
@@ -32,6 +36,7 @@ class RoleController extends Controller
         return Inertia::render('roles/index');
     }
 
+    /** Return all roles, all permissions, and protected-role names for the editor UI. */
     public function data(Request $request): JsonResponse
     {
         abort_unless($request->user()?->can('roles.view'), 403);
@@ -43,6 +48,7 @@ class RoleController extends Controller
         ]);
     }
 
+    /** Create a new role on the web guard. */
     public function store(StoreRoleRequest $request): JsonResponse
     {
         $role = $this->service->create($request->validated('name'));
@@ -50,6 +56,7 @@ class RoleController extends Controller
         return ApiResponse::created(new RoleResource($role), 'Role created');
     }
 
+    /** Sync the list of permissions attached to a role. */
     public function update(UpdateRolePermissionsRequest $request, Role $role): JsonResponse
     {
         $role = $this->service->syncPermissions($role, $request->validated('permissions') ?? []);
@@ -57,6 +64,7 @@ class RoleController extends Controller
         return ApiResponse::ok(new RoleResource($role), 'Permissions updated');
     }
 
+    /** Delete a role, blocking removal of built-in roles or roles still assigned to users. */
     public function destroy(Request $request, Role $role): JsonResponse
     {
         abort_unless($request->user()?->can('roles.delete'), 403);

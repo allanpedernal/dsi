@@ -6,7 +6,11 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Spatie\Permission\Models\Permission;
 
-/** @mixin Permission */
+/**
+ * Transforms a Spatie Permission model into its API payload shape.
+ *
+ * @mixin Permission
+ */
 class PermissionResource extends JsonResource
 {
     /** @return array<string, mixed> */

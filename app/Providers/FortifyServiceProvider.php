@@ -15,19 +15,18 @@ use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
+/**
+ * Wires Fortify actions, Inertia auth views, and rate limiters.
+ */
 class FortifyServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
+    /** Swap Fortify's default LoginResponse for the permission-aware redirect. */
     public function register(): void
     {
         $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
+    /** Configure Fortify actions, Inertia views, and rate limiters. */
     public function boot(): void
     {
         $this->configureActions();
@@ -35,18 +34,14 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
     }
 
-    /**
-     * Configure Fortify actions.
-     */
+    /** Point Fortify's user-creation and password-reset hooks at our Action classes. */
     private function configureActions(): void
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
     }
 
-    /**
-     * Configure Fortify views.
-     */
+    /** Render all Fortify auth screens through Inertia React pages. */
     private function configureViews(): void
     {
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
@@ -75,9 +70,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
     }
 
-    /**
-     * Configure rate limiting.
-     */
+    /** Register per-minute rate limiters for login and two-factor challenge routes. */
     private function configureRateLimiting(): void
     {
         RateLimiter::for('two-factor', function (Request $request) {

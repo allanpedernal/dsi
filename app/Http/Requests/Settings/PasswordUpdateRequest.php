@@ -6,14 +6,15 @@ use App\Concerns\PasswordValidationRules;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates the current-password + new-password pair for the settings password update flow.
+ */
 class PasswordUpdateRequest extends FormRequest
 {
     use PasswordValidationRules;
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<int, mixed>|string>
      */
     public function rules(): array
     {

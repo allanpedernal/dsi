@@ -6,14 +6,15 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Laravel\Fortify\InteractsWithTwoFactorState;
 
+/**
+ * Carries Fortify two-factor state lookups; no input validation is required.
+ */
 class TwoFactorAuthenticationRequest extends FormRequest
 {
     use InteractsWithTwoFactorState;
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<int, mixed>|string>
      */
     public function rules(): array
     {

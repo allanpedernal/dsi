@@ -11,10 +11,14 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Renders the audit log browser page and streams activity rows to the data table.
+ */
 class AuditLogController extends Controller
 {
     public function __construct(private AuditService $service) {}
 
+    /** Render the audit log index page with tenant-scoped customer filter options. */
     public function index(Request $request): Response
     {
         abort_unless($request->user()?->can('audit.view'), 403);
@@ -30,6 +34,7 @@ class AuditLogController extends Controller
         ]);
     }
 
+    /** Return paginated activity rows as JSON for the audit log data table. */
     public function data(Request $request): JsonResponse
     {
         abort_unless($request->user()?->can('audit.view'), 403);

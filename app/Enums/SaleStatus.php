@@ -2,12 +2,16 @@
 
 namespace App\Enums;
 
+/**
+ * Lifecycle status of a sale transaction.
+ */
 enum SaleStatus: string
 {
     case Pending = 'pending';
     case Paid = 'paid';
     case Cancelled = 'cancelled';
 
+    /** Human-readable label for display. */
     public function label(): string
     {
         return match ($this) {
@@ -17,7 +21,11 @@ enum SaleStatus: string
         };
     }
 
-    /** @return array<string, string> */
+    /**
+     * Value-to-label map suitable for a `<select>` input.
+     *
+     * @return array<string, string>
+     */
     public static function options(): array
     {
         $out = [];

@@ -12,21 +12,25 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ApiResponse
 {
+    /** Build a 200 OK JSON envelope wrapping the given data. */
     public static function ok(mixed $data = null, ?string $message = null, int $status = Response::HTTP_OK): JsonResponse
     {
         return self::respond(true, $data, $message, $status);
     }
 
+    /** Build a 201 Created JSON envelope wrapping the new resource. */
     public static function created(mixed $data = null, ?string $message = 'Created'): JsonResponse
     {
         return self::respond(true, $data, $message, Response::HTTP_CREATED);
     }
 
+    /** Build a 204 No Content JSON envelope. */
     public static function noContent(?string $message = null): JsonResponse
     {
         return self::respond(true, null, $message, Response::HTTP_NO_CONTENT);
     }
 
+    /** Build an error JSON envelope with an optional validation-error bag. */
     public static function error(string $message, int $status = Response::HTTP_BAD_REQUEST, mixed $errors = null): JsonResponse
     {
         return new JsonResponse([

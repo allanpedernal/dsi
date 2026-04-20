@@ -7,7 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Spatie\Activitylog\Models\Activity;
 
-/** @mixin Activity */
+/**
+ * Transforms a Spatie activity log entry into its API payload shape.
+ *
+ * @mixin Activity
+ */
 class ActivityResource extends JsonResource
 {
     /** @return array<string, mixed> */

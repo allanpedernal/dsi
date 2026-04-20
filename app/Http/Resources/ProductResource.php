@@ -6,7 +6,11 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin Product */
+/**
+ * Transforms a Product model into its API payload shape.
+ *
+ * @mixin Product
+ */
 class ProductResource extends JsonResource
 {
     /** @return array<string, mixed> */

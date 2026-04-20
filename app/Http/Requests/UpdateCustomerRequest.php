@@ -3,9 +3,13 @@
 namespace App\Http\Requests;
 
 use App\Enums\Country;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Validates payload for updating an existing customer.
+ */
 class UpdateCustomerRequest extends FormRequest
 {
     public function authorize(): bool
@@ -13,7 +17,9 @@ class UpdateCustomerRequest extends FormRequest
         return $this->user()?->can('customers.update') ?? false;
     }
 
-    /** @return array<string, array<int, mixed>|string> */
+    /**
+     * @return array<string, ValidationRule|array<int, mixed>|string>
+     */
     public function rules(): array
     {
         $id = $this->route('customer')?->id ?? $this->route('customer');

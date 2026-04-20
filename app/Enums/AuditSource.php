@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * Identifies the entry point that originated an audit-logged action.
+ */
 enum AuditSource: string
 {
     case Web = 'web';
@@ -9,6 +12,7 @@ enum AuditSource: string
     case Console = 'console';
     case System = 'system';
 
+    /** Human-readable label for display. */
     public function label(): string
     {
         return match ($this) {

@@ -2,8 +2,12 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates the list of permission names being synced onto a role.
+ */
 class UpdateRolePermissionsRequest extends FormRequest
 {
     public function authorize(): bool
@@ -11,7 +15,9 @@ class UpdateRolePermissionsRequest extends FormRequest
         return $this->user()?->can('roles.update') ?? false;
     }
 
-    /** @return array<string, array<int, mixed>|string> */
+    /**
+     * @return array<string, ValidationRule|array<int, mixed>|string>
+     */
     public function rules(): array
     {
         return [

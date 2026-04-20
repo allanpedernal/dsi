@@ -6,7 +6,11 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin Customer */
+/**
+ * Transforms a Customer model into its API payload shape.
+ *
+ * @mixin Customer
+ */
 class CustomerResource extends JsonResource
 {
     /** @return array<string, mixed> */

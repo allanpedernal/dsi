@@ -23,6 +23,7 @@ class AccessibleHome
         ['permission' => 'permissions.view', 'path' => '/permissions'],
     ];
 
+    /** Resolve the landing path the given user is authorised to visit. */
     public static function for(?User $user): string
     {
         if (! $user) {

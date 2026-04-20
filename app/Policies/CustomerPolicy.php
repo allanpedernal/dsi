@@ -5,6 +5,9 @@ namespace App\Policies;
 use App\Models\Customer;
 use App\Models\User;
 
+/**
+ * Authorises customer-related actions against the `customers.*` permission set.
+ */
 class CustomerPolicy
 {
     public function viewAny(User $user): bool

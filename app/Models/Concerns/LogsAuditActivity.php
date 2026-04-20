@@ -21,6 +21,7 @@ trait LogsAuditActivity
 {
     use LogsActivity;
 
+    /** Default activitylog configuration: log fillable attributes, only when dirty. */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -30,6 +31,7 @@ trait LogsAuditActivity
             ->useLogName(static::auditLogName());
     }
 
+    /** Build the activity log description, prefixed with the acting user's name. */
     public function getDescriptionForEvent(string $eventName): string
     {
         $verb = match ($eventName) {
@@ -45,6 +47,7 @@ trait LogsAuditActivity
         return "{$actor} {$verb} ".$this->auditSubjectLabel();
     }
 
+    /** Enrich each activity row with source/request/ip/customer context before persistence. */
     public function beforeActivityLogged(Activity $activity, string $eventName): void
     {
         /** @var AuditContext $ctx */
@@ -62,6 +65,7 @@ trait LogsAuditActivity
         $activity->customer_id = $this->resolveAuditCustomerId() ?? self::actorCustomerId();
     }
 
+    /** Derive the owning customer_id from the subject itself (customer, or a model with customer_id). */
     protected function resolveAuditCustomerId(): ?int
     {
         if (isset($this->customer_id)) {
@@ -74,6 +78,7 @@ trait LogsAuditActivity
         return null;
     }
 
+    /** Fall back to the first customer_id linked to the currently authenticated user. */
     private static function actorCustomerId(): ?int
     {
         $user = auth()->user();

@@ -8,6 +8,9 @@ use App\Models\User;
 use App\Notifications\NewSaleNotification;
 use Illuminate\Support\Facades\Notification;
 
+/**
+ * Notifies admin and manager users when a new sale has been recorded.
+ */
 class SendNewSaleNotification
 {
     public function handle(SaleCreated $event): void

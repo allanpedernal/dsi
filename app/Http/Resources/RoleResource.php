@@ -6,7 +6,11 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Spatie\Permission\Models\Role;
 
-/** @mixin Role */
+/**
+ * Transforms a Spatie Role model into its API payload shape.
+ *
+ * @mixin Role
+ */
 class RoleResource extends JsonResource
 {
     /** @return array<string, mixed> */

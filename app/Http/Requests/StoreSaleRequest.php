@@ -2,8 +2,12 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates payload for creating a new sale with one or more line items.
+ */
 class StoreSaleRequest extends FormRequest
 {
     public function authorize(): bool
@@ -11,7 +15,9 @@ class StoreSaleRequest extends FormRequest
         return $this->user()?->can('sales.create') ?? false;
     }
 
-    /** @return array<string, array<int, mixed>|string> */
+    /**
+     * @return array<string, ValidationRule|array<int, mixed>|string>
+     */
     public function rules(): array
     {
         return [

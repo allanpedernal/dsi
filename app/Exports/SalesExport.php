@@ -10,6 +10,9 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
+/**
+ * Exports filtered sales rows as Excel / CSV for the reports download action.
+ */
 class SalesExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping, WithStyles
 {
     /**
@@ -17,6 +20,7 @@ class SalesExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMappin
      */
     public function __construct(private array $filters = []) {}
 
+    /** Build the underlying sales query using the same filters as the report page. */
     public function query()
     {
         return app(ReportService::class)->salesQuery($this->filters);
@@ -28,7 +32,11 @@ class SalesExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMappin
         return ['Reference', 'Date', 'Customer', 'Status', 'Subtotal', 'Tax', 'Discount', 'Total', 'Source'];
     }
 
-    /** @return array<int, mixed> */
+    /**
+     * Map each Sale row to the flat column list used by the spreadsheet.
+     *
+     * @return array<int, mixed>
+     */
     public function map($sale): array
     {
         return [

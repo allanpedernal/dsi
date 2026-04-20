@@ -13,10 +13,14 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Permission;
 
+/**
+ * Web controller backing the permissions management UI and its JSON data endpoints.
+ */
 class PermissionController extends Controller
 {
     public function __construct(private PermissionService $service) {}
 
+    /** Render the permissions index page. */
     public function index(Request $request): Response
     {
         abort_unless($request->user()?->can('permissions.view'), 403);
@@ -24,6 +28,7 @@ class PermissionController extends Controller
         return Inertia::render('permissions/index');
     }
 
+    /** Return paginated permissions as JSON for the data table. */
     public function data(Request $request): JsonResponse
     {
         abort_unless($request->user()?->can('permissions.view'), 403);
@@ -33,6 +38,7 @@ class PermissionController extends Controller
         ));
     }
 
+    /** Create a new permission. */
     public function store(StorePermissionRequest $request): JsonResponse
     {
         $permission = $this->service->create($request->validated());
@@ -40,6 +46,7 @@ class PermissionController extends Controller
         return ApiResponse::created(new PermissionResource($permission), 'Permission created');
     }
 
+    /** Update a permission's name and/or guard. */
     public function update(UpdatePermissionRequest $request, Permission $permission): JsonResponse
     {
         $permission = $this->service->update($permission, $request->validated());
@@ -47,6 +54,7 @@ class PermissionController extends Controller
         return ApiResponse::ok(new PermissionResource($permission), 'Permission updated');
     }
 
+    /** Delete a permission, blocking removal while it is still attached to any roles. */
     public function destroy(Request $request, Permission $permission): JsonResponse
     {
         abort_unless($request->user()?->can('permissions.delete'), 403);

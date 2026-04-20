@@ -3,10 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\Country;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
+/**
+ * Validates payload for creating a new customer. Auto-generates a `CUST-XXXXXX` code when omitted.
+ */
 class StoreCustomerRequest extends FormRequest
 {
     public function authorize(): bool
@@ -14,7 +18,9 @@ class StoreCustomerRequest extends FormRequest
         return $this->user()?->can('customers.create') ?? false;
     }
 
-    /** @return array<string, array<int, mixed>|string> */
+    /**
+     * @return array<string, ValidationRule|array<int, mixed>|string>
+     */
     public function rules(): array
     {
         return [
@@ -30,6 +36,7 @@ class StoreCustomerRequest extends FormRequest
         ];
     }
 
+    /** Fill in a default CUST- prefix code when the client does not supply one. */
     protected function prepareForValidation(): void
     {
         if (! $this->code) {

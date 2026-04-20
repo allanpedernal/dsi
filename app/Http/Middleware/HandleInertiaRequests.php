@@ -5,11 +5,15 @@ namespace App\Http\Middleware;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
+/**
+ * Shares app-wide props (auth, permissions, unread notifications, layout state) with Inertia.
+ */
 class HandleInertiaRequests extends Middleware
 {
     /** @var string */
     protected $rootView = 'app';
 
+    /** Asset-version string used by Inertia to trigger full page reloads after deploys. */
     public function version(Request $request): ?string
     {
         return parent::version($request);

@@ -5,6 +5,9 @@ namespace App\Policies;
 use App\Models\Sale;
 use App\Models\User;
 
+/**
+ * Authorises sale-related actions against the `sales.*` permission set.
+ */
 class SalePolicy
 {
     public function viewAny(User $user): bool

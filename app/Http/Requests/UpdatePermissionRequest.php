@@ -2,9 +2,13 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Validates payload for renaming an existing Spatie permission.
+ */
 class UpdatePermissionRequest extends FormRequest
 {
     public function authorize(): bool
@@ -12,7 +16,9 @@ class UpdatePermissionRequest extends FormRequest
         return $this->user()?->can('permissions.update') ?? false;
     }
 
-    /** @return array<string, array<int, mixed>|string> */
+    /**
+     * @return array<string, ValidationRule|array<int, mixed>|string>
+     */
     public function rules(): array
     {
         $id = $this->route('permission')?->id ?? $this->route('permission');

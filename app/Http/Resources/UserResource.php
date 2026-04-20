@@ -6,7 +6,11 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin User */
+/**
+ * Transforms a User model into its API payload shape.
+ *
+ * @mixin User
+ */
 class UserResource extends JsonResource
 {
     /** @return array<string, mixed> */

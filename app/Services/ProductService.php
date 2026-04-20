@@ -9,10 +9,16 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
+/**
+ * Read/write operations for products, encapsulating tenant scoping and CRUD.
+ */
 class ProductService
 {
     /**
+     * Paginate products, honouring tenant scoping and search/sort/low-stock filters.
+     *
      * @param  array{search?: ?string, category_id?: ?int, customer_id?: ?int, only_low_stock?: ?bool, sort?: ?string, dir?: ?string, per_page?: ?int}  $filters
+     * @return LengthAwarePaginator<int, Product>
      */
     public function paginate(array $filters = []): LengthAwarePaginator
     {
@@ -37,6 +43,8 @@ class ProductService
     }
 
     /**
+     * Create a new product; tenant-scoped users always get their pivot customer_id.
+     *
      * @param  array<string, mixed>  $data
      */
     public function create(array $data, ?int $actingUserId = null): Product
@@ -54,6 +62,8 @@ class ProductService
     }
 
     /**
+     * Update an existing product, stamping the acting user as last editor.
+     *
      * @param  array<string, mixed>  $data
      */
     public function update(Product $product, array $data, ?int $actingUserId = null): Product
@@ -64,6 +74,7 @@ class ProductService
         return $product->refresh();
     }
 
+    /** Soft-delete a product. */
     public function delete(Product $product): void
     {
         $product->delete();

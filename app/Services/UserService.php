@@ -6,10 +6,16 @@ use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * Read/write operations for users, encapsulating role assignment and password hashing.
+ */
 class UserService
 {
     /**
+     * Paginate users with their roles, filtered by search term and/or single role.
+     *
      * @param  array{search?: ?string, role?: ?string, per_page?: ?int}  $filters
+     * @return LengthAwarePaginator<int, User>
      */
     public function paginate(array $filters = []): LengthAwarePaginator
     {
@@ -26,6 +32,8 @@ class UserService
     }
 
     /**
+     * Create a new user with a hashed password and optional single-role assignment.
+     *
      * @param  array{name:string, email:string, password:string, role?:?string}  $data
      */
     public function create(array $data): User
@@ -44,6 +52,8 @@ class UserService
     }
 
     /**
+     * Update an existing user; re-hashes the password only when one is provided.
+     *
      * @param  array{name?:string, email?:string, password?:?string, role?:?string}  $data
      */
     public function update(User $user, array $data): User
@@ -64,6 +74,7 @@ class UserService
         return $user->refresh();
     }
 
+    /** Delete a user; callers are responsible for preventing self-deletion. */
     public function delete(User $user): void
     {
         $user->delete();

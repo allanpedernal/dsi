@@ -6,7 +6,11 @@ use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin Sale */
+/**
+ * Transforms a Sale model into its API payload shape.
+ *
+ * @mixin Sale
+ */
 class SaleResource extends JsonResource
 {
     /** @return array<string, mixed> */

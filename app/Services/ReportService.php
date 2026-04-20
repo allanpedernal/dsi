@@ -8,10 +8,16 @@ use App\Support\TenantScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Builds sales report queries and aggregates for the reporting UI and exports.
+ */
 class ReportService
 {
     /**
+     * Base sales query honouring tenant scoping and the sales-report filter set.
+     *
      * @param  array{from?:?string, to?:?string, status?:?string, user_id?:?int, customer_id?:?int}  $filters
+     * @return Builder<Sale>
      */
     public function salesQuery(array $filters): Builder
     {
@@ -28,6 +34,8 @@ class ReportService
     }
 
     /**
+     * Aggregate totals for paid sales matching the filter set.
+     *
      * @param  array<string, mixed>  $filters
      * @return array{count:int, subtotal:float, tax:float, discount:float, total:float}
      */

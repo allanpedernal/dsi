@@ -6,10 +6,16 @@ use App\Models\Customer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * Read/write operations for customers, encapsulating list pagination and CRUD.
+ */
 class CustomerService
 {
     /**
+     * Paginate customers with optional search/sort filters.
+     *
      * @param  array{search?: ?string, sort?: ?string, dir?: ?string, per_page?: ?int}  $filters
+     * @return LengthAwarePaginator<int, Customer>
      */
     public function paginate(array $filters = []): LengthAwarePaginator
     {
@@ -31,6 +37,8 @@ class CustomerService
     }
 
     /**
+     * Create a new customer, stamping the acting user as creator.
+     *
      * @param  array<string, mixed>  $data
      */
     public function create(array $data, ?int $actingUserId = null): Customer
@@ -41,6 +49,8 @@ class CustomerService
     }
 
     /**
+     * Update an existing customer, stamping the acting user as last editor.
+     *
      * @param  array<string, mixed>  $data
      */
     public function update(Customer $customer, array $data, ?int $actingUserId = null): Customer
@@ -51,6 +61,7 @@ class CustomerService
         return $customer->refresh();
     }
 
+    /** Soft-delete a customer. */
     public function delete(Customer $customer): void
     {
         $customer->delete();

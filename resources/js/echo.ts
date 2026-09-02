@@ -21,11 +21,7 @@ export function initEcho() {
         broadcaster: 'pusher',
         key,
         cluster: (import.meta.env.VITE_PUSHER_APP_CLUSTER as string) || 'mt1',
-        wsHost: (import.meta.env.VITE_PUSHER_HOST as string) || undefined,
-        wsPort: Number(import.meta.env.VITE_PUSHER_PORT) || 443,
-        wssPort: Number(import.meta.env.VITE_PUSHER_PORT) || 443,
-        forceTLS: (import.meta.env.VITE_PUSHER_SCHEME as string) === 'https',
-        enabledTransports: ['ws', 'wss'],
+        forceTLS: true,
     });
     return window.Echo;
 }

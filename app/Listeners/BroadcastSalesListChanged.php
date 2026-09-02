@@ -9,6 +9,9 @@ use App\Events\SaleUpdated;
 
 /**
  * Collapses Sale{Created,Updated,Deleted} into a single SalesListChanged broadcast.
+ *
+ * Uses toOthers() so the user who made the change is not notified of their own
+ * action - they already get immediate local feedback from the page they acted on.
  */
 class BroadcastSalesListChanged
 {
@@ -20,6 +23,6 @@ class BroadcastSalesListChanged
             $event instanceof SaleDeleted => ['deleted', $event->saleId, $event->reference],
         };
 
-        event(new SalesListChanged($action, $id, $reference));
+        broadcast(new SalesListChanged($action, $id, $reference))->toOthers();
     }
 }

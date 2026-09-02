@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { Box, Button, Chip, IconButton, InputAdornment, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
@@ -54,11 +54,15 @@ export default function SalesIndex({ statuses, tenantScoped, customers }: Props)
 
     useEffect(() => { load(); }, [load]);
 
+    // Held in a ref so the Echo subscription below is created once on mount rather
+    // than being torn down and rebuilt on every filter or pagination change.
+    const loadRef = useRef(load);
+    useEffect(() => { loadRef.current = load; }, [load]);
+
     useEffect(() => {
         const echo = initEcho();
         if (!echo) return;
-        const channel = echo.private('sales.admin');
-        channel.listen('.SalesListChanged', (e: { action: 'created' | 'updated' | 'deleted'; reference: string }) => {
+        const handler = (e: { action: 'created' | 'updated' | 'deleted'; reference: string }) => {
             const msg =
                 e.action === 'created' ? `New sale ${e.reference} added` :
                 e.action === 'updated' ? `Sale ${e.reference} updated` :
@@ -68,10 +72,15 @@ export default function SalesIndex({ statuses, tenantScoped, customers }: Props)
             } else {
                 toast.success(msg);
             }
-            load();
-        });
-        return () => { echo.leave('private-sales.admin'); };
-    }, [load]);
+            loadRef.current();
+        };
+        const channel = echo.private('sales.admin');
+        channel.listen('.SalesListChanged', handler);
+        return () => {
+            channel.stopListening('.SalesListChanged', handler);
+            echo.leaveChannel('private-sales.admin');
+        };
+    }, []);
 
     const handleDelete = async (row: Sale) => {
         const ok = await confirm({

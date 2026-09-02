@@ -140,3 +140,53 @@ test('listeners are registered: SaleCreated -> BroadcastSalesListChanged and Sen
     expect($listenersForUpdated)->not->toBeEmpty();
     expect($listenersForDeleted)->not->toBeEmpty();
 });
+
+test('the acting socket is excluded from the SalesListChanged broadcast', function () {
+    Notification::fake();
+    Event::fake([SalesListChanged::class]);
+
+    $admin = User::factory()->create();
+    $admin->assignRole(UserRole::Admin->value);
+
+    $customer = Customer::factory()->create();
+    $product = Product::factory()->create(['stock' => 50, 'price' => 10.00]);
+
+    /** Echo sends this header on every request; toOthers() reads it. */
+    request()->headers->set('X-Socket-ID', '12345.67890');
+
+    app(SaleService::class)->create([
+        'customer_id' => $customer->id,
+        'user_id' => $admin->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        'tax_rate' => 0,
+        'discount' => 0,
+        'source' => 'web',
+    ], $admin);
+
+    Event::assertDispatched(
+        SalesListChanged::class,
+        fn ($e) => $e->socket === '12345.67890',
+    );
+});
+
+test('the broadcast reaches everyone when no socket id is present', function () {
+    Notification::fake();
+    Event::fake([SalesListChanged::class]);
+
+    $admin = User::factory()->create();
+    $admin->assignRole(UserRole::Admin->value);
+
+    $customer = Customer::factory()->create();
+    $product = Product::factory()->create(['stock' => 50, 'price' => 10.00]);
+
+    app(SaleService::class)->create([
+        'customer_id' => $customer->id,
+        'user_id' => $admin->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        'tax_rate' => 0,
+        'discount' => 0,
+        'source' => 'web',
+    ], $admin);
+
+    Event::assertDispatched(SalesListChanged::class, fn ($e) => $e->socket === null);
+});

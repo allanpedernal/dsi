@@ -8,12 +8,29 @@ const xsrfToken = () =>
             ?.split('=')[1] ?? '',
     );
 
+/**
+ * Identifies the originating socket so the server can exclude this tab from its
+ * own broadcasts via `->toOthers()`.
+ */
+const socketId = () => {
+    try {
+        return window.Echo?.socketId() ?? null;
+    } catch {
+        return null;
+    }
+};
+
 async function request<T = unknown>(method: string, url: string, body?: Json | FormData): Promise<T> {
     const headers: Record<string, string> = {
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
         'X-XSRF-TOKEN': xsrfToken(),
     };
+
+    const socket = socketId();
+    if (socket) {
+        headers['X-Socket-ID'] = socket;
+    }
 
     let payload: BodyInit | undefined;
     if (body instanceof FormData) {
